@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КАИТ 20</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --md-sys-color-primary: var(--tg-theme-button-color, #6750A4);
+            --md-sys-color-on-primary: var(--tg-theme-button-text-color, #FFFFFF);
+            --md-sys-color-surface: var(--tg-theme-bg-color, #FEF7FF);
+            --md-sys-color-on-surface: var(--tg-theme-text-color, #1D1B20);
+            --md-sys-color-surface-variant: var(--tg-theme-secondary-bg-color, #EADDFF);
+            --md-sys-color-outline: var(--tg-theme-hint-color, #79747E);
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .logo {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: var(--md-sys-color-surface-variant);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .nav {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            justify-content: center;
+        }
+        .nav-chip {
+            background-color: transparent;
+            color: var(--md-sys-color-on-surface);
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .nav-chip.active {
+            background-color: var(--md-sys-color-surface-variant);
+            border-color: transparent;
+            color: var(--md-sys-color-on-surface);
+        }
+        .card {
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: 28px;
+            padding: 24px;
+            width: 100%;
+            box-sizing: border-box;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .card.active {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .card h3 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 500;
+        }
+        .card p {
+            margin: 0;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .btn {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            border-radius: 100px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+            text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        .btn:active {
+            opacity: 0.8;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+            border: 1px solid var(--md-sys-color-primary);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="logo.png" alt="KAIT 20" class="logo">
+        <div class="title">КАИТ 20</div>
+    </div>
+
+    <div class="nav">
+        <div class="nav-chip active" onclick="showTab('lunches', this)">Обеды</div>
+        <div class="nav-chip" onclick="showTab('events', this)">Мероприятия</div>
+        <div class="nav-chip" onclick="showTab('directory', this)">Справочная</div>
+    </div>
+
+    <div id="lunches" class="card active">
+        <h3>Расписание обедов</h3>
+        <p id="lunches-text">Загрузка данных...</p>
+    </div>
+
+    <div id="events" class="card">
+        <h3>Мероприятия</h3>
+        <p id="events-text">Загрузка данных...</p>
+    </div>
+
+    <div id="directory" class="card">
+        <h3>Справочная</h3>
+        <button class="btn btn-outline" onclick="window.Telegram.WebApp.openLink('https://kait20.mskobr.ru/')">Основной сайт</button>
+        <button class="btn btn-outline" onclick="window.Telegram.WebApp.openLink('https://kait20.mskobr.ru/info_edu/staff')">Педагогический состав</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        function showTab(tabId, element) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-chip').forEach(c => c.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch('data.json');
+                const data = await response.json();
+                document.getElementById('lunches-text').innerText = data.lunches || 'Нет данных';
+                document.getElementById('events-text').innerText = data.events || 'Нет данных';
+            } catch (e) {
+                document.getElementById('lunches-text').innerText = 'Ошибка загрузки расписания';
+                document.getElementById('events-text').innerText = 'Ошибка загрузки мероприятий';
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
